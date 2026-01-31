@@ -80,10 +80,7 @@ jobs:
             sleep 10
 
             # Health check
-            curl -f http://localhost:3000 || echo "Frontend health check failed"
-
-            # Reload nginx to pick up changes
-            docker-compose -f docker-compose.frontend.yml exec -T nginx nginx -s reload || true
+            wget -q --spider http://localhost:3000 || echo "Frontend health check failed"
 
             # Clean up old images
             docker image prune -af --filter "until=168h"
