@@ -16,7 +16,8 @@
       "Bash(git commit:*)",
       "Bash(docker build:*)",
       "Bash(npm install:*)",
-      "Bash(npm config get:*)"
+      "Bash(npm config get:*)",
+      "Bash(git push)"
     ]
   }
 }

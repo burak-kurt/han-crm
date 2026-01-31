@@ -71,10 +71,10 @@ jobs:
             cd ~/hancrm
 
             # Pull latest frontend image
-            docker-compose -f docker-compose.server.yml pull frontend
+            docker-compose -f docker-compose.frontend.yml pull frontend
 
             # Restart only frontend service
-            docker-compose -f docker-compose.server.yml up -d frontend
+            docker-compose -f docker-compose.frontend.yml up -d frontend
 
             # Wait for frontend to be ready
             sleep 10
@@ -83,7 +83,7 @@ jobs:
             curl -f http://localhost:3000 || echo "Frontend health check failed"
 
             # Reload nginx to pick up changes
-            docker-compose -f docker-compose.server.yml exec -T nginx nginx -s reload || true
+            docker-compose -f docker-compose.frontend.yml exec -T nginx nginx -s reload || true
 
             # Clean up old images
             docker image prune -af --filter "until=168h"
