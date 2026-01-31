@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet add:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet tool install:*)",
+      "Bash(dotnet ef migrations:*)",
+      "Bash(dotnet ef database update:*)",
+      "Bash(psql:*)",
+      "Bash(dotnet run:*)",
+      "Bash(timeout:*)",
+      "Bash(npm run dev:*)",
+      "Bash(dir:*)"
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: han-crm-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - DB_HOST=host.docker.internal
+      - DB_PORT=5432
+      - DB_NAME=han_crm
+      - DB_USER=postgres
+      - DB_PASSWORD=159632
+      - JWT_SECRET=HAN_CRM_2024_Secret_Key_9x7p2m5k8n4b6v3c
+      - JWT_EXPIRE=7d
+      - FRONTEND_URL=http://localhost:3000
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+    networks:
+      - han-crm-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: han-crm-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+    depends_on:
+      - backend
+    networks:
+      - han-crm-network
+
+networks:
+  han-crm-network:
+    driver: bridge
