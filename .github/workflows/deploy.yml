@@ -68,7 +68,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            cd /opt/hancrm
+            cd ~/hancrm
 
             # Pull latest frontend image
             docker compose -f docker-compose.server.yml pull frontend
