@@ -1,5 +1,4 @@
-# HAN CRM - Frontend Deployment
-# Sadece frontend container'ı
+version: "2.4"
 
 services:
   frontend:
@@ -8,8 +7,3 @@ services:
     restart: always
     ports:
       - "3000:80"
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
