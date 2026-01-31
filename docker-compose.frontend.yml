@@ -8,8 +8,8 @@ services:
     container_name: hancrm-db
     restart: always
     environment:
-      POSTGRES_DB: ${DB_NAME:-hancrm}
-      POSTGRES_USER: ${DB_USER:-hanuser}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     volumes:
@@ -18,7 +18,7 @@ services:
     networks:
       - hancrm-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hanuser}"]
+      test: ["CMD-SHELL", "pg_isready -U hanuser"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,7 +31,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=${DB_NAME:-hancrm};Username=${DB_USER:-hanuser};Password=${DB_PASSWORD}
+      - ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
     ports:
       - "5000:8080"
     depends_on:
