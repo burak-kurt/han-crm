@@ -70,11 +70,18 @@ jobs:
           script: |
             cd ~/hancrm
 
+            # Pull latest nginx config from repo
+            git pull origin main
+
             # Pull latest frontend image
             docker-compose -f docker-compose.frontend.yml pull frontend
 
             # Restart only frontend service
             docker-compose -f docker-compose.frontend.yml up -d frontend
+
+            # Update nginx config
+            sudo cp ~/hancrm/nginx/conf.d/hancrm.conf /etc/nginx/conf.d/hancrm.conf
+            sudo nginx -t && sudo systemctl reload nginx
 
             # Wait for frontend to be ready
             sleep 10
