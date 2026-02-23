@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Lock } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/axios';
 
@@ -25,6 +26,22 @@ export default function LoginPage() {
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) return;
+    setError('');
+    setLoading(true);
+    try {
+      const response = await api.post('/auth/google-login', { credential: credentialResponse.credential });
+      const { token, user } = response.data.data;
+      setAuth(user, token);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Google ile giriş başarısız. Hesabınız sistemde kayıtlı olmayabilir.');
     } finally {
       setLoading(false);
     }
@@ -98,6 +115,27 @@ export default function LoginPage() {
               {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
             </button>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-3 bg-white text-gray-500">veya</span>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError('Google ile giriş başarısız. Lütfen tekrar deneyin.')}
+                text="signin_with"
+                locale="tr"
+                disabled={loading}
+              />
+            </div>
+          </div>
 
           <div className="mt-6 text-center">
             <a href="/" className="text-sm text-primary-600 hover:text-primary-700">

@@ -23,6 +23,7 @@ interface Lead {
   reminderDate?: string;
   notificationStatus?: string;
   isAgenda?: boolean;
+  createdAt?: string;
   assignedTo?: number;
   assignedUser?: {
     id: number;
@@ -58,6 +59,8 @@ export default function LeadsPage() {
   const [filterListingStatus, setFilterListingStatus] = useState('');
   const [filterAssignedTo, setFilterAssignedTo] = useState('');
   const [filterIsAgenda, setFilterIsAgenda] = useState('');
+  const [filterIsStale, setFilterIsStale] = useState('');
+  const [formError, setFormError] = useState('');
 
   // Bulk selection states
   const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
@@ -93,7 +96,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchLeads();
-  }, [currentPage, filterPropertyStatus, filterListingType, filterListingStatus, filterAssignedTo, filterIsAgenda]);
+  }, [currentPage, filterPropertyStatus, filterListingType, filterListingStatus, filterAssignedTo, filterIsAgenda, filterIsStale]);
 
   const fetchUsers = async () => {
     try {
@@ -114,6 +117,7 @@ export default function LeadsPage() {
         ...(filterListingStatus && { listingStatus: filterListingStatus }),
         ...(filterAssignedTo && { assignedTo: filterAssignedTo }),
         ...(filterIsAgenda && { isAgenda: filterIsAgenda }),
+        ...(filterIsStale && { isStale: filterIsStale }),
       });
 
       const response = await api.get(`/leads?${params.toString()}`);
@@ -130,6 +134,7 @@ export default function LeadsPage() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    setFormError('');
     try {
       if (editingLead) {
         await api.put(`/leads/${editingLead.id}`, formData);
@@ -140,7 +145,12 @@ export default function LeadsPage() {
       resetForm();
       fetchLeads();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Bir hata oluştu');
+      const msg = error.response?.data?.message || 'Bir hata oluştu';
+      if (error.response?.status === 409) {
+        setFormError(`⛔ Mükerrer kayıt: ${msg}`);
+      } else {
+        setFormError(msg);
+      }
     }
   };
 
@@ -217,6 +227,28 @@ export default function LeadsPage() {
     l.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     l.phone.includes(searchTerm)
   );
+
+  const isLeadStale = (lead: Lead): boolean => {
+    const closedStatuses = ['kaybedildi', 'kazanildi'];
+    if (closedStatuses.includes((lead.propertyStatus || '').toLowerCase())) return false;
+    if (!lead.createdAt) return false;
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    if (new Date(lead.createdAt) > sevenDaysAgo) return false;
+    if (!lead.nextFollowUp) return true;
+    return new Date(lead.nextFollowUp) < new Date();
+  };
+
+  const buildWhatsAppLink = (lead: Lead): string => {
+    const rawPhone = (lead.phone || '').replace(/\D/g, '');
+    const phone = rawPhone.startsWith('0') ? rawPhone.slice(1) : rawPhone;
+    let msg = `Sayın ${lead.firstName} ${lead.lastName}, görüşmemize istinaden randevu talebinde bulunmak istiyorum.`;
+    if (lead.nextFollowUp) {
+      const dateStr = new Date(lead.nextFollowUp).toLocaleDateString('tr-TR');
+      msg += ` Randevu tarihi: ${dateStr}.`;
+    }
+    return `https://wa.me/90${phone}?text=${encodeURIComponent(msg)}`;
+  };
 
   const getPropertyStatusBadge = (status: string) => {
     const colors: any = {
@@ -299,7 +331,7 @@ export default function LeadsPage() {
           </div>
 
           {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             <select
               value={filterPropertyStatus}
               onChange={(e) => setFilterPropertyStatus(e.target.value)}
@@ -354,6 +386,15 @@ export default function LeadsPage() {
               <option value="">Ajanda: Tümü</option>
               <option value="true">Evet</option>
               <option value="false">Hayır</option>
+            </select>
+
+            <select
+              value={filterIsStale}
+              onChange={(e) => { setFilterIsStale(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+            >
+              <option value="">Bayat: Tümü</option>
+              <option value="true">🕸️ Bayat Müşteriler</option>
             </select>
           </div>
         </div>
@@ -434,7 +475,7 @@ export default function LeadsPage() {
                      'text-green-600') : '';
 
                   return (
-                  <tr key={lead.id} className="hover:bg-gray-50">
+                  <tr key={lead.id} className={`hover:bg-gray-50 ${isLeadStale(lead) ? 'border-l-4 border-orange-400' : ''}`}>
                     {canUpdate && (
                       <td className="px-6 py-4 text-center">
                         <input
@@ -453,7 +494,24 @@ export default function LeadsPage() {
                       </td>
                     )}
                     <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{lead.firstName} {lead.lastName}</div></td>
-                    <td className="px-6 py-4"><div className="text-sm text-gray-900">{lead.phone}</div></td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="text-sm text-gray-900">{lead.phone}</div>
+                        {lead.phone && (
+                          <a
+                            href={buildWhatsAppLink(lead)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="WhatsApp ile mesaj gönder"
+                            className="text-green-600 hover:text-green-800 flex-shrink-0"
+                          >
+                            <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                            </svg>
+                          </a>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       {lead.assignedUser ? (
                         <div className="text-sm text-gray-900">{lead.assignedUser.firstName}</div>
@@ -600,7 +658,7 @@ export default function LeadsPage() {
                 <h2 className="text-lg font-bold text-gray-900">{editingLead ? 'Düzenle' : 'Yeni Potansiyel Müşteri'}</h2>
                 <p className="text-sm text-gray-500">Adım {formStep} / 3</p>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-200 rounded">
+              <button onClick={() => { setShowModal(false); setFormError(''); }} className="p-1 hover:bg-gray-200 rounded">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -624,6 +682,13 @@ export default function LeadsPage() {
               <div className="flex-1 text-center">İlan Bilgileri</div>
               <div className="flex-1 text-center">Takip</div>
             </div>
+
+            {/* Form Error */}
+            {formError && (
+              <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                {formError}
+              </div>
+            )}
 
             {/* Form Content */}
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, UserPlus, TrendingUp, Activity } from 'lucide-react';
+import { Users, UserPlus, TrendingUp, Activity, AlertTriangle } from 'lucide-react';
 import api from '../lib/axios';
 
 export default function Dashboard() {
@@ -8,6 +8,7 @@ export default function Dashboard() {
     totalLeads: 0,
     activeUsers: 0,
     recentActivities: 0,
+    staleLeads: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -17,11 +18,12 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const [customers, leads, users, logs] = await Promise.all([
+      const [customers, leads, users, logs, staleLeads] = await Promise.all([
         api.get('/customers'),
         api.get('/leads?limit=1'),
         api.get('/users'),
         api.get('/activitylogs?limit=1'),
+        api.get('/leads?isStale=true&limit=1'),
       ]);
 
       setStats({
@@ -29,6 +31,7 @@ export default function Dashboard() {
         totalLeads: leads.data.data?.totalCount || 0,
         activeUsers: users.data.data?.filter((u: any) => u.isActive).length || 0,
         recentActivities: logs.data.data?.totalCount || 0,
+        staleLeads: staleLeads.data.data?.totalCount || 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -66,6 +69,13 @@ export default function Dashboard() {
       color: 'bg-orange-500',
       bgColor: 'bg-orange-50',
     },
+    {
+      title: 'Bayat Müşteri',
+      value: stats.staleLeads,
+      icon: AlertTriangle,
+      color: 'bg-red-500',
+      bgColor: 'bg-red-50',
+    },
   ];
 
   return (
@@ -81,7 +91,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             {cards.map((card, index) => {
               const Icon = card.icon;
               return (
