@@ -95,10 +95,13 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
+            # Login to GitHub Container Registry
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u burak-kurt --password-stdin
+
             cd ~/hancrm
 
             # Pull latest nginx config from repo
-            git pull origin prod
+            git fetch origin && git checkout prod && git pull origin prod
 
             # Pull latest frontend image
             docker-compose -f docker-compose.frontend.yml pull frontend
