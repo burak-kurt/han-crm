@@ -131,8 +131,6 @@ export default function LoginPage() {
                 onSuccess={handleGoogleSuccess}
                 onError={() => setError('Google ile giriş başarısız. Lütfen tekrar deneyin.')}
                 text="signin_with"
-                locale="tr"
-                disabled={loading}
               />
             </div>
           </div>
