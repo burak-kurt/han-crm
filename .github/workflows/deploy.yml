@@ -2,7 +2,7 @@ name: Deploy Frontend to Production
 
 on:
   push:
-    branches: [main, master]
+    branches: [dev, prod]
   workflow_dispatch:
 
 env:
@@ -10,9 +10,34 @@ env:
   IMAGE_NAME: ${{ github.repository }}/frontend
 
 jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build
+
   build-and-push:
     name: Build and Push Frontend Image
     runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/prod'
     permissions:
       contents: read
       packages: write
@@ -39,7 +64,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/prod' }}
 
       - name: Build and push Frontend image
         uses: docker/build-push-action@v5
@@ -58,6 +83,7 @@ jobs:
     name: Deploy to Server
     needs: build-and-push
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/prod'
 
     steps:
       - name: Deploy to Production Server
@@ -71,7 +97,7 @@ jobs:
             cd ~/hancrm
 
             # Pull latest nginx config from repo
-            git pull origin main
+            git pull origin prod
 
             # Pull latest frontend image
             docker-compose -f docker-compose.frontend.yml pull frontend
@@ -101,26 +127,3 @@ jobs:
         if: failure()
         run: |
           echo "Frontend Deployment failed!"
-
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Dependencies
-        run: |
-          cd frontend
-          npm install
-
-      - name: Build Frontend
-        run: |
-          cd frontend
-          npm run build
