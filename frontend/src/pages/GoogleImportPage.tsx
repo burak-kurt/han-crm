@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Cloud, Link, Download, CheckCircle, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react';
+import { Cloud, Link, Download, CheckCircle, AlertCircle, ExternalLink, RefreshCw, ArrowRight } from 'lucide-react';
 import api from '../lib/axios';
 
 interface SpreadsheetInfo {
@@ -18,6 +18,18 @@ interface PreviewData {
   totalRows: number;
 }
 
+interface ColumnMapping {
+  sheetColumn: string;
+  sheetColumnIndex: number;
+  mappedField: string;
+  autoMatched: boolean;
+}
+
+interface AvailableField {
+  value: string;
+  label: string;
+}
+
 export default function GoogleImportPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -26,6 +38,8 @@ export default function GoogleImportPage() {
   const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
   const [spreadsheetInfo, setSpreadsheetInfo] = useState<SpreadsheetInfo | null>(null);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
+  const [mappings, setMappings] = useState<ColumnMapping[]>([]);
+  const [availableFields, setAvailableFields] = useState<AvailableField[]>([]);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ imported: number; skipped: number } | null>(null);
   const [error, setError] = useState('');
@@ -82,19 +96,29 @@ export default function GoogleImportPage() {
     try {
       setError('');
       setLoading(true);
+      setImportResult(null);
 
-      const [infoRes, previewRes] = await Promise.all([
+      const [infoRes, previewRes, mappingRes] = await Promise.all([
         api.get(`/google/spreadsheet/${spreadsheetId}`),
         api.get(`/google/spreadsheet/${spreadsheetId}/preview`),
+        api.get(`/google/spreadsheet/${spreadsheetId}/mapping`),
       ]);
 
       setSpreadsheetInfo(infoRes.data);
       setPreviewData(previewRes.data);
+      setMappings(mappingRes.data.mappings);
+      setAvailableFields(mappingRes.data.availableFields);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Spreadsheet yüklenemedi');
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateMapping = (index: number, field: string) => {
+    setMappings(prev => prev.map((m, i) =>
+      i === index ? { ...m, mappedField: field, autoMatched: false } : m
+    ));
   };
 
   const handleImport = async () => {
@@ -106,7 +130,13 @@ export default function GoogleImportPage() {
       setError('');
       setImportResult(null);
 
-      const response = await api.post('/google/import', { spreadsheetId });
+      const response = await api.post('/google/import', {
+        spreadsheetId,
+        mappings: mappings.map(m => ({
+          sheetColumnIndex: m.sheetColumnIndex,
+          mappedField: m.mappedField,
+        })),
+      });
       setImportResult({
         imported: response.data.imported,
         skipped: response.data.skipped,
@@ -117,6 +147,9 @@ export default function GoogleImportPage() {
       setImporting(false);
     }
   };
+
+  const mappedCount = mappings.filter(m => m.mappedField !== 'skip').length;
+  const unmappedCount = mappings.filter(m => m.mappedField === 'skip').length;
 
   if (loading && !spreadsheetInfo) {
     return (
@@ -222,10 +255,10 @@ export default function GoogleImportPage() {
             </div>
             <button
               onClick={loadSpreadsheet}
-              disabled={!spreadsheetUrl}
+              disabled={!spreadsheetUrl || loading}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
             >
-              Yükle
+              {loading ? 'Yükleniyor...' : 'Yükle'}
             </button>
           </div>
         </div>
@@ -254,6 +287,80 @@ export default function GoogleImportPage() {
         </div>
       )}
 
+      {/* Column Mapping */}
+      {mappings.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-medium text-gray-900">Kolon Eşleştirme</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Her sütunun hangi alana karşılık geldiğini kontrol edin.
+                <span className="ml-2 text-green-600 font-medium">{mappedCount} eşleşti</span>
+                {unmappedCount > 0 && (
+                  <span className="ml-2 text-yellow-600 font-medium">{unmappedCount} eşleşmedi</span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {mappings.map((mapping, idx) => (
+              <div
+                key={idx}
+                className={`flex items-center space-x-3 p-3 rounded-lg ${
+                  mapping.mappedField === 'skip'
+                    ? 'bg-gray-50'
+                    : mapping.autoMatched
+                    ? 'bg-green-50'
+                    : 'bg-blue-50'
+                }`}
+              >
+                <div className="w-1/3 min-w-0">
+                  <span className="text-sm font-medium text-gray-700 truncate block">
+                    {mapping.sheetColumn || `Kolon ${idx + 1}`}
+                  </span>
+                </div>
+
+                <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+
+                <div className="w-1/3 min-w-0">
+                  <select
+                    value={mapping.mappedField}
+                    onChange={(e) => updateMapping(idx, e.target.value)}
+                    className={`w-full px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 ${
+                      mapping.mappedField === 'skip'
+                        ? 'border-gray-300 text-gray-400'
+                        : mapping.autoMatched
+                        ? 'border-green-300'
+                        : 'border-blue-300'
+                    }`}
+                  >
+                    {availableFields.map(field => (
+                      <option key={field.value} value={field.value}>
+                        {field.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex-shrink-0 w-20 text-right">
+                  {mapping.autoMatched && mapping.mappedField !== 'skip' && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                      Otomatik
+                    </span>
+                  )}
+                  {!mapping.autoMatched && mapping.mappedField !== 'skip' && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                      Manuel
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Spreadsheet Info & Preview */}
       {spreadsheetInfo && (
         <div className="bg-white rounded-lg shadow mb-6">
@@ -268,7 +375,7 @@ export default function GoogleImportPage() {
               </div>
               <button
                 onClick={handleImport}
-                disabled={importing}
+                disabled={importing || mappedCount === 0}
                 className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
                 {importing ? (
@@ -276,7 +383,7 @@ export default function GoogleImportPage() {
                 ) : (
                   <Download className="h-5 w-5" />
                 )}
-                <span>{importing ? 'İmport Ediliyor...' : 'Tümünü Import Et'}</span>
+                <span>{importing ? 'Import Ediliyor...' : 'Import Et'}</span>
               </button>
             </div>
           </div>
@@ -287,21 +394,39 @@ export default function GoogleImportPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {previewData.headers.map((header, idx) => (
-                      <th key={idx} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        {header || `Kolon ${idx + 1}`}
-                      </th>
-                    ))}
+                    {previewData.headers.map((header, idx) => {
+                      const mapping = mappings.find(m => m.sheetColumnIndex === idx);
+                      const field = availableFields.find(f => f.value === mapping?.mappedField);
+                      return (
+                        <th key={idx} className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                          <div>{header || `Kolon ${idx + 1}`}</div>
+                          {field && field.value !== 'skip' && (
+                            <div className="text-primary-600 font-normal mt-0.5">
+                              → {field.label}
+                            </div>
+                          )}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {previewData.rows.map((row, rowIdx) => (
                     <tr key={rowIdx}>
-                      {row.map((cell, cellIdx) => (
-                        <td key={cellIdx} className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">
-                          {cell || '-'}
-                        </td>
-                      ))}
+                      {row.map((cell, cellIdx) => {
+                        const mapping = mappings.find(m => m.sheetColumnIndex === cellIdx);
+                        const isSkipped = mapping?.mappedField === 'skip';
+                        return (
+                          <td
+                            key={cellIdx}
+                            className={`px-4 py-3 text-sm max-w-xs truncate ${
+                              isSkipped ? 'text-gray-300' : 'text-gray-900'
+                            }`}
+                          >
+                            {cell || '-'}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
@@ -323,13 +448,13 @@ export default function GoogleImportPage() {
           <ol className="list-decimal list-inside text-sm text-blue-800 space-y-2">
             <li>Google Sheets dosyanızın URL'sini yukarıdaki alana yapıştırın</li>
             <li>"Yükle" butonuna tıklayın</li>
-            <li>Verilerinizi önizleyin</li>
-            <li>"Tümünü Import Et" butonuyla verileri sisteme aktarın</li>
+            <li>Kolon eşleştirmelerini kontrol edin, gerekirse değiştirin</li>
+            <li>Veri önizlemesini kontrol edin</li>
+            <li>"Import Et" butonuyla verileri sisteme aktarın</li>
           </ol>
           <p className="text-sm text-blue-700 mt-4">
             <strong>Not:</strong> Spreadsheet'inizin ilk satırı başlık satırı olmalıdır.
-            Kolonlar: Ekip, İlan Linki, Tip, Durum, İlan Durumu, Müşteri Adı, Telefon, Notlar,
-            Son İşlem Tarihi, Hatırlatma Tarihi, Bildirim Durumu, Ajanda
+            Eşleşmeyen sütunları "Notlara Ekle" seçeneğiyle notlara aktarabilir veya "Atla" ile atlayabilirsiniz.
           </p>
         </div>
       )}
