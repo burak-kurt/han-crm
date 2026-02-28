@@ -5,8 +5,7 @@ import { useAuthStore } from '../store/authStore';
 
 interface Customer {
   id: number;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email?: string;
   phone: string;
   address?: string;
@@ -46,15 +45,10 @@ export default function CustomersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const nameParts = formData.fullName.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ');
-      const { fullName, ...rest } = formData;
-      const payload = { ...rest, firstName, lastName };
       if (editingCustomer) {
-        await api.put(`/customers/${editingCustomer.id}`, payload);
+        await api.put(`/customers/${editingCustomer.id}`, formData);
       } else {
-        await api.post('/customers', payload);
+        await api.post('/customers', formData);
       }
       setShowModal(false);
       resetForm();
@@ -77,7 +71,7 @@ export default function CustomersPage() {
   const handleEdit = (customer: Customer) => {
     setEditingCustomer(customer);
     setFormData({
-      fullName: `${customer.firstName} ${customer.lastName}`.trim(),
+      fullName: customer.fullName,
       email: customer.email || '', phone: customer.phone,
       address: customer.address || '', city: customer.city || '',
       status: customer.status, budget: customer.budget?.toString() || '',
@@ -95,8 +89,7 @@ export default function CustomersPage() {
   };
 
   const filteredCustomers = customers.filter(c =>
-    c.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.phone.includes(searchTerm)
   );
 
@@ -155,7 +148,7 @@ export default function CustomersPage() {
               ) : (
                 filteredCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{customer.firstName} {customer.lastName}</div></td>
+                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{customer.fullName}</div></td>
                     <td className="px-6 py-4"><div className="text-sm text-gray-900">{customer.phone}</div></td>
                     <td className="px-6 py-4"><div className="text-sm text-gray-900">{customer.city || '-'}</div></td>
                     <td className="px-6 py-4"><div className="text-sm text-gray-900">{customer.propertyType || '-'}</div></td>

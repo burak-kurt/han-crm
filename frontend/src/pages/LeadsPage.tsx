@@ -5,8 +5,7 @@ import { useAuthStore } from '../store/authStore';
 
 interface Lead {
   id: number;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email?: string;
   phone: string;
   source: string;
@@ -136,15 +135,10 @@ export default function LeadsPage() {
     if (e) e.preventDefault();
     setFormError('');
     try {
-      const nameParts = formData.fullName.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ');
-      const { fullName, ...rest } = formData;
-      const payload = { ...rest, firstName, lastName };
       if (editingLead) {
-        await api.put(`/leads/${editingLead.id}`, payload);
+        await api.put(`/leads/${editingLead.id}`, formData);
       } else {
-        await api.post('/leads', payload);
+        await api.post('/leads', formData);
       }
       setShowModal(false);
       resetForm();
@@ -204,7 +198,7 @@ export default function LeadsPage() {
   const handleEdit = (lead: Lead) => {
     setEditingLead(lead);
     setFormData({
-      fullName: `${lead.firstName} ${lead.lastName}`.trim(),
+      fullName: lead.fullName,
       email: lead.email || '', phone: lead.phone,
       source: lead.source, propertyStatus: lead.propertyStatus,
       interest: lead.interest || '', budget: lead.budget?.toString() || '',
@@ -228,8 +222,7 @@ export default function LeadsPage() {
   };
 
   const filteredLeads = leads.filter(l =>
-    l.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    l.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     l.phone.includes(searchTerm)
   );
 
@@ -247,7 +240,7 @@ export default function LeadsPage() {
   const buildWhatsAppLink = (lead: Lead): string => {
     const rawPhone = (lead.phone || '').replace(/\D/g, '');
     const phone = rawPhone.startsWith('0') ? rawPhone.slice(1) : rawPhone;
-    let msg = `Sayın ${lead.firstName} ${lead.lastName}, görüşmemize istinaden randevu talebinde bulunmak istiyorum.`;
+    let msg = `Sayın ${lead.fullName}, görüşmemize istinaden randevu talebinde bulunmak istiyorum.`;
     if (lead.nextFollowUp) {
       const dateStr = new Date(lead.nextFollowUp).toLocaleDateString('tr-TR');
       msg += ` Randevu tarihi: ${dateStr}.`;
@@ -498,7 +491,7 @@ export default function LeadsPage() {
                         />
                       </td>
                     )}
-                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{lead.firstName} {lead.lastName}</div></td>
+                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{lead.fullName}</div></td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <div className="text-sm text-gray-900">{lead.phone}</div>
@@ -928,7 +921,7 @@ export default function LeadsPage() {
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center space-x-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  İlan Önizleme - {previewLead.firstName} {previewLead.lastName}
+                  İlan Önizleme - {previewLead.fullName}
                 </h3>
                 {getListingStatusBadge(previewLead.listingStatus)}
               </div>
