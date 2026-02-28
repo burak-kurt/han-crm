@@ -22,8 +22,11 @@ jobs:
 
       - name: Determine bump type
         id: bump
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          MSG="${{ github.event.head_commit.message }}"
+          # Sadece ilk satırı al (çok satırlı mesajlarda shell injection önlenir)
+          MSG=$(echo "$COMMIT_MSG" | head -1)
           echo "Commit message: $MSG"
 
           if echo "$MSG" | grep -qiE "BREAKING CHANGE|^.+!:"; then
