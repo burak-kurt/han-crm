@@ -26,7 +26,7 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', phone: '', address: '',
+    fullName: '', email: '', phone: '', address: '',
     city: '', status: 'active', budget: '', propertyType: '', notes: '',
   });
 
@@ -46,10 +46,15 @@ export default function CustomersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const nameParts = formData.fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ');
+      const { fullName, ...rest } = formData;
+      const payload = { ...rest, firstName, lastName };
       if (editingCustomer) {
-        await api.put(`/customers/${editingCustomer.id}`, formData);
+        await api.put(`/customers/${editingCustomer.id}`, payload);
       } else {
-        await api.post('/customers', formData);
+        await api.post('/customers', payload);
       }
       setShowModal(false);
       resetForm();
@@ -72,7 +77,7 @@ export default function CustomersPage() {
   const handleEdit = (customer: Customer) => {
     setEditingCustomer(customer);
     setFormData({
-      firstName: customer.firstName, lastName: customer.lastName,
+      fullName: `${customer.firstName} ${customer.lastName}`.trim(),
       email: customer.email || '', phone: customer.phone,
       address: customer.address || '', city: customer.city || '',
       status: customer.status, budget: customer.budget?.toString() || '',
@@ -83,7 +88,7 @@ export default function CustomersPage() {
 
   const resetForm = () => {
     setFormData({
-      firstName: '', lastName: '', email: '', phone: '', address: '',
+      fullName: '', email: '', phone: '', address: '',
       city: '', status: 'active', budget: '', propertyType: '', notes: '',
     });
     setEditingCustomer(null);
@@ -183,12 +188,8 @@ export default function CustomersPage() {
               <button onClick={() => setShowModal(false)}><X className="h-6 w-6" /></button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium mb-1">Ad</label>
-                  <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" required /></div>
-                <div><label className="block text-sm font-medium mb-1">Soyad</label>
-                  <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" required /></div>
-              </div>
+              <div><label className="block text-sm font-medium mb-1">Ad Soyad</label>
+                <input type="text" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" placeholder="Ad Soyad" required /></div>
               <div><label className="block text-sm font-medium mb-1">E-posta</label>
                 <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg" /></div>
               <div><label className="block text-sm font-medium mb-1">Telefon</label>

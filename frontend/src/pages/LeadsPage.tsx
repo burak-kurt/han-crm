@@ -84,7 +84,7 @@ export default function LeadsPage() {
   };
 
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', phone: '', source: 'direct',
+    fullName: '', email: '', phone: '', source: 'direct',
     propertyStatus: 'aranacak', interest: '', budget: '', notes: '',
     nextFollowUp: getOneWeekLater(), listingUrl: '', listingType: '',
     listingStatus: 'active', reminderDate: getOneWeekLater(), isAgenda: false,
@@ -136,10 +136,15 @@ export default function LeadsPage() {
     if (e) e.preventDefault();
     setFormError('');
     try {
+      const nameParts = formData.fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ');
+      const { fullName, ...rest } = formData;
+      const payload = { ...rest, firstName, lastName };
       if (editingLead) {
-        await api.put(`/leads/${editingLead.id}`, formData);
+        await api.put(`/leads/${editingLead.id}`, payload);
       } else {
-        await api.post('/leads', formData);
+        await api.post('/leads', payload);
       }
       setShowModal(false);
       resetForm();
@@ -199,7 +204,7 @@ export default function LeadsPage() {
   const handleEdit = (lead: Lead) => {
     setEditingLead(lead);
     setFormData({
-      firstName: lead.firstName, lastName: lead.lastName,
+      fullName: `${lead.firstName} ${lead.lastName}`.trim(),
       email: lead.email || '', phone: lead.phone,
       source: lead.source, propertyStatus: lead.propertyStatus,
       interest: lead.interest || '', budget: lead.budget?.toString() || '',
@@ -213,7 +218,7 @@ export default function LeadsPage() {
 
   const resetForm = () => {
     setFormData({
-      firstName: '', lastName: '', email: '', phone: '', source: 'direct',
+      fullName: '', email: '', phone: '', source: 'direct',
       propertyStatus: 'aranacak', interest: '', budget: '', notes: '',
       nextFollowUp: getOneWeekLater(), listingUrl: '', listingType: '',
       listingStatus: 'active', reminderDate: getOneWeekLater(), isAgenda: false,
@@ -695,29 +700,16 @@ export default function LeadsPage() {
               {/* Step 1: Kişi Bilgileri */}
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ad *</label>
-                      <input
-                        type="text"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        placeholder="Ad"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Soyad *</label>
-                      <input
-                        type="text"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        placeholder="Soyad"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ad Soyad *</label>
+                    <input
+                      type="text"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      placeholder="Ad Soyad"
+                      required
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Telefon *</label>
@@ -904,8 +896,8 @@ export default function LeadsPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (formStep === 1 && (!formData.firstName || !formData.lastName || !formData.phone)) {
-                      alert('Lütfen zorunlu alanları doldurun (Ad, Soyad, Telefon)');
+                    if (formStep === 1 && (!formData.fullName || !formData.phone)) {
+                      alert('Lütfen zorunlu alanları doldurun (Ad Soyad, Telefon)');
                       return;
                     }
                     setFormStep(formStep + 1);
