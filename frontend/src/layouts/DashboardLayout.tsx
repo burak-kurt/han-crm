@@ -176,6 +176,9 @@ export default function DashboardLayout() {
               <LogOut className="h-5 w-5" />
               <span className="font-medium">Çıkış Yap</span>
             </button>
+            <p className="text-center text-xs text-gray-400 mt-2">
+              v{import.meta.env.VITE_APP_VERSION || 'dev'}
+            </p>
           </div>
         </div>
       </aside>

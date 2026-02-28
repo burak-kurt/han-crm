@@ -1,0 +1,66 @@
+name: Auto Version Bump
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  version-bump:
+    name: Bump Version
+    runs-on: ubuntu-latest
+    # Versiyon bump commit'i tekrar tetiklemesin
+    if: "!startsWith(github.event.head_commit.message, 'chore: version bump')"
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Determine bump type
+        id: bump
+        run: |
+          MSG="${{ github.event.head_commit.message }}"
+          echo "Commit message: $MSG"
+
+          if echo "$MSG" | grep -qiE "BREAKING CHANGE|^.+!:"; then
+            BUMP_TYPE="major"
+          elif echo "$MSG" | grep -qiE "^feat(\(.+\))?:"; then
+            BUMP_TYPE="minor"
+          else
+            BUMP_TYPE="patch"
+          fi
+
+          echo "Bump type: $BUMP_TYPE"
+          echo "type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+
+      - name: Bump version
+        id: version
+        run: |
+          VERSION=$(cat VERSION)
+          echo "Current version: $VERSION"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          if [ "${{ steps.bump.outputs.type }}" = "major" ]; then
+            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+          elif [ "${{ steps.bump.outputs.type }}" = "minor" ]; then
+            MINOR=$((MINOR + 1)); PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "$NEW_VERSION" > VERSION
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add VERSION
+          git commit -m "chore: version bump v${{ steps.version.outputs.version }}"
+          git push

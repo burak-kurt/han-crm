@@ -129,7 +129,10 @@ export default function LoginPage() {
             <div className="mt-4 flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
-                onError={() => setError('Google ile giriş başarısız. Lütfen tekrar deneyin.')}
+                onError={() => {
+                  console.error('Google login onError tetiklendi');
+                  setError('Google ile giriş başarısız. Lütfen tekrar deneyin.');
+                }}
                 text="signin_with"
               />
             </div>
