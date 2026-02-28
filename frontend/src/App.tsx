@@ -11,6 +11,9 @@ import UsersPage from './pages/UsersPage';
 import RolesPage from './pages/RolesPage';
 import LogsPage from './pages/LogsPage';
 import GoogleImportPage from './pages/GoogleImportPage';
+import BlogManagementPage from './pages/BlogManagementPage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 import { useAuthStore } from './store/authStore';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -28,6 +31,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/crm/login" element={<LoginPage />} />
 
         <Route
@@ -47,6 +52,7 @@ function App() {
           <Route path="roles" element={<RolesPage />} />
           <Route path="logs" element={<LogsPage />} />
           <Route path="google-import" element={<GoogleImportPage />} />
+          <Route path="blog" element={<BlogManagementPage />} />
         </Route>
       </Routes>
     </Router>

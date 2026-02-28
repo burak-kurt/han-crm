@@ -14,6 +14,7 @@ import {
   Archive,
   TrendingUp,
   Cloud,
+  BookOpen,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/axios';
@@ -89,6 +90,12 @@ export default function DashboardLayout() {
       href: '/crm/google-import',
       icon: Cloud,
       permission: 'leads.create',
+    },
+    {
+      name: 'Blog Yazıları',
+      href: '/crm/blog',
+      icon: BookOpen,
+      permission: null,
     },
   ];
 
