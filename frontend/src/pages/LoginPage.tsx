@@ -23,7 +23,7 @@ export default function LoginPage() {
       const { token, user } = response.data.data;
 
       setAuth(user, token);
-      navigate('/dashboard');
+      navigate('/crm');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
     } finally {
@@ -39,7 +39,7 @@ export default function LoginPage() {
       const response = await api.post('/auth/google-login', { credential: credentialResponse.credential });
       const { token, user } = response.data.data;
       setAuth(user, token);
-      navigate('/dashboard');
+      navigate('/crm');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Google ile giriş başarısız. Hesabınız sistemde kayıtlı olmayabilir.');
     } finally {

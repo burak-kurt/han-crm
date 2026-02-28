@@ -5,8 +5,7 @@ import { useAuthStore } from '../store/authStore';
 
 interface Lead {
   id: number;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email?: string;
   phone: string;
   source: string;
@@ -84,7 +83,7 @@ export default function LeadsPage() {
   };
 
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', phone: '', source: 'direct',
+    fullName: '', email: '', phone: '', source: 'direct',
     propertyStatus: 'aranacak', interest: '', budget: '', notes: '',
     nextFollowUp: getOneWeekLater(), listingUrl: '', listingType: '',
     listingStatus: 'active', reminderDate: getOneWeekLater(), isAgenda: false,
@@ -199,7 +198,7 @@ export default function LeadsPage() {
   const handleEdit = (lead: Lead) => {
     setEditingLead(lead);
     setFormData({
-      firstName: lead.firstName, lastName: lead.lastName,
+      fullName: lead.fullName,
       email: lead.email || '', phone: lead.phone,
       source: lead.source, propertyStatus: lead.propertyStatus,
       interest: lead.interest || '', budget: lead.budget?.toString() || '',
@@ -213,7 +212,7 @@ export default function LeadsPage() {
 
   const resetForm = () => {
     setFormData({
-      firstName: '', lastName: '', email: '', phone: '', source: 'direct',
+      fullName: '', email: '', phone: '', source: 'direct',
       propertyStatus: 'aranacak', interest: '', budget: '', notes: '',
       nextFollowUp: getOneWeekLater(), listingUrl: '', listingType: '',
       listingStatus: 'active', reminderDate: getOneWeekLater(), isAgenda: false,
@@ -223,8 +222,7 @@ export default function LeadsPage() {
   };
 
   const filteredLeads = leads.filter(l =>
-    l.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    l.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     l.phone.includes(searchTerm)
   );
 
@@ -242,7 +240,7 @@ export default function LeadsPage() {
   const buildWhatsAppLink = (lead: Lead): string => {
     const rawPhone = (lead.phone || '').replace(/\D/g, '');
     const phone = rawPhone.startsWith('0') ? rawPhone.slice(1) : rawPhone;
-    let msg = `Sayın ${lead.firstName} ${lead.lastName}, görüşmemize istinaden randevu talebinde bulunmak istiyorum.`;
+    let msg = `Sayın ${lead.fullName}, görüşmemize istinaden randevu talebinde bulunmak istiyorum.`;
     if (lead.nextFollowUp) {
       const dateStr = new Date(lead.nextFollowUp).toLocaleDateString('tr-TR');
       msg += ` Randevu tarihi: ${dateStr}.`;
@@ -493,7 +491,7 @@ export default function LeadsPage() {
                         />
                       </td>
                     )}
-                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{lead.firstName} {lead.lastName}</div></td>
+                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{lead.fullName}</div></td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <div className="text-sm text-gray-900">{lead.phone}</div>
@@ -695,29 +693,16 @@ export default function LeadsPage() {
               {/* Step 1: Kişi Bilgileri */}
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ad *</label>
-                      <input
-                        type="text"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        placeholder="Ad"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Soyad *</label>
-                      <input
-                        type="text"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        placeholder="Soyad"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ad Soyad *</label>
+                    <input
+                      type="text"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      placeholder="Ad Soyad"
+                      required
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Telefon *</label>
@@ -904,8 +889,8 @@ export default function LeadsPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (formStep === 1 && (!formData.firstName || !formData.lastName || !formData.phone)) {
-                      alert('Lütfen zorunlu alanları doldurun (Ad, Soyad, Telefon)');
+                    if (formStep === 1 && (!formData.fullName || !formData.phone)) {
+                      alert('Lütfen zorunlu alanları doldurun (Ad Soyad, Telefon)');
                       return;
                     }
                     setFormStep(formStep + 1);
@@ -936,7 +921,7 @@ export default function LeadsPage() {
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center space-x-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  İlan Önizleme - {previewLead.firstName} {previewLead.lastName}
+                  İlan Önizleme - {previewLead.fullName}
                 </h3>
                 {getListingStatusBadge(previewLead.listingStatus)}
               </div>

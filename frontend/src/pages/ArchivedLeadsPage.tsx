@@ -5,8 +5,7 @@ import { useAuthStore } from '../store/authStore';
 
 interface Lead {
   id: number;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email?: string;
   phone: string;
   propertyStatus: string;
@@ -62,8 +61,7 @@ export default function ArchivedLeadsPage() {
   };
 
   const filteredLeads = leads.filter(l =>
-    l.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    l.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     l.phone.includes(searchTerm)
   );
 
@@ -227,7 +225,7 @@ export default function ArchivedLeadsPage() {
 
                   return (
                   <tr key={lead.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{lead.firstName} {lead.lastName}</div></td>
+                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{lead.fullName}</div></td>
                     <td className="px-6 py-4"><div className="text-sm text-gray-900">{lead.phone}</div></td>
                     <td className="px-6 py-4">
                       {lead.assignedUser ? (

@@ -5,8 +5,7 @@ import { useAuthStore } from '../store/authStore';
 
 interface Customer {
   id: number;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email?: string;
   phone: string;
   address?: string;
@@ -26,7 +25,7 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', phone: '', address: '',
+    fullName: '', email: '', phone: '', address: '',
     city: '', status: 'active', budget: '', propertyType: '', notes: '',
   });
 
@@ -72,7 +71,7 @@ export default function CustomersPage() {
   const handleEdit = (customer: Customer) => {
     setEditingCustomer(customer);
     setFormData({
-      firstName: customer.firstName, lastName: customer.lastName,
+      fullName: customer.fullName,
       email: customer.email || '', phone: customer.phone,
       address: customer.address || '', city: customer.city || '',
       status: customer.status, budget: customer.budget?.toString() || '',
@@ -83,15 +82,14 @@ export default function CustomersPage() {
 
   const resetForm = () => {
     setFormData({
-      firstName: '', lastName: '', email: '', phone: '', address: '',
+      fullName: '', email: '', phone: '', address: '',
       city: '', status: 'active', budget: '', propertyType: '', notes: '',
     });
     setEditingCustomer(null);
   };
 
   const filteredCustomers = customers.filter(c =>
-    c.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.phone.includes(searchTerm)
   );
 
@@ -150,7 +148,7 @@ export default function CustomersPage() {
               ) : (
                 filteredCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{customer.firstName} {customer.lastName}</div></td>
+                    <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{customer.fullName}</div></td>
                     <td className="px-6 py-4"><div className="text-sm text-gray-900">{customer.phone}</div></td>
                     <td className="px-6 py-4"><div className="text-sm text-gray-900">{customer.city || '-'}</div></td>
                     <td className="px-6 py-4"><div className="text-sm text-gray-900">{customer.propertyType || '-'}</div></td>
@@ -183,12 +181,8 @@ export default function CustomersPage() {
               <button onClick={() => setShowModal(false)}><X className="h-6 w-6" /></button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium mb-1">Ad</label>
-                  <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" required /></div>
-                <div><label className="block text-sm font-medium mb-1">Soyad</label>
-                  <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" required /></div>
-              </div>
+              <div><label className="block text-sm font-medium mb-1">Ad Soyad</label>
+                <input type="text" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" placeholder="Ad Soyad" required /></div>
               <div><label className="block text-sm font-medium mb-1">E-posta</label>
                 <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg" /></div>
               <div><label className="block text-sm font-medium mb-1">Telefon</label>

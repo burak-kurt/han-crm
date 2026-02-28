@@ -130,21 +130,21 @@ export default function Dashboard() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Hızlı Bağlantılar</h2>
               <div className="space-y-3">
                 <a
-                  href="/dashboard/customers"
+                  href="/crm/customers"
                   className="block p-3 rounded-lg border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-colors"
                 >
                   <div className="font-medium text-gray-900">Müşteriler</div>
                   <div className="text-sm text-gray-600">Müşteri listesini görüntüle</div>
                 </a>
                 <a
-                  href="/dashboard/leads"
+                  href="/crm/leads"
                   className="block p-3 rounded-lg border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-colors"
                 >
                   <div className="font-medium text-gray-900">Potansiyel Müşteriler</div>
                   <div className="text-sm text-gray-600">Potansiyel müşteri takibi</div>
                 </a>
                 <a
-                  href="/dashboard/users"
+                  href="/crm/users"
                   className="block p-3 rounded-lg border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-colors"
                 >
                   <div className="font-medium text-gray-900">Çalışanlar</div>
