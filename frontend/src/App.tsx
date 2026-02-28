@@ -17,7 +17,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/crm/login" replace />;
   }
 
   return <>{children}</>;
@@ -28,10 +28,10 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/crm/login" element={<LoginPage />} />
 
         <Route
-          path="/dashboard"
+          path="/crm"
           element={
             <ProtectedRoute>
               <DashboardLayout />

@@ -12,7 +12,7 @@ export default function LandingPage() {
               <span className="text-2xl font-bold text-gray-900">HAN CRM</span>
             </div>
             <Link
-              to="/login"
+              to="/crm/login"
               className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               Giriş Yap
@@ -32,7 +32,7 @@ export default function LandingPage() {
           </p>
           <div className="flex justify-center gap-4">
             <Link
-              to="/login"
+              to="/crm/login"
               className="px-8 py-3 bg-primary-600 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors"
             >
               Hemen Başlayın

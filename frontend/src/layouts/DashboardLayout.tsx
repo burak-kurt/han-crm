@@ -31,62 +31,62 @@ export default function DashboardLayout() {
       console.error('Logout error:', error);
     } finally {
       logout();
-      navigate('/login');
+      navigate('/crm/login');
     }
   };
 
   const navigation = [
     {
       name: 'Dashboard',
-      href: '/dashboard',
+      href: '/crm',
       icon: LayoutDashboard,
       permission: null,
     },
     {
       name: 'Müşteriler',
-      href: '/dashboard/customers',
+      href: '/crm/customers',
       icon: Users,
       permission: 'customers.view',
     },
     {
       name: 'Potansiyel Müşteriler',
-      href: '/dashboard/leads',
+      href: '/crm/leads',
       icon: UserPlus,
       permission: 'leads.view',
     },
     {
       name: 'Arşiv',
-      href: '/dashboard/leads/archived',
+      href: '/crm/leads/archived',
       icon: Archive,
       permission: 'leads.view',
     },
     {
       name: 'Danışman Performansı',
-      href: '/dashboard/performance',
+      href: '/crm/performance',
       icon: TrendingUp,
       permission: 'users.view',
     },
     {
       name: 'Çalışanlar',
-      href: '/dashboard/users',
+      href: '/crm/users',
       icon: UserIcon,
       permission: 'users.view',
     },
     {
       name: 'Roller ve Yetkiler',
-      href: '/dashboard/roles',
+      href: '/crm/roles',
       icon: Shield,
       permission: 'roles.view',
     },
     {
       name: 'Aktivite Logları',
-      href: '/dashboard/logs',
+      href: '/crm/logs',
       icon: FileText,
       permission: 'logs.view',
     },
     {
       name: 'Google Import',
-      href: '/dashboard/google-import',
+      href: '/crm/google-import',
       icon: Cloud,
       permission: 'leads.create',
     },
