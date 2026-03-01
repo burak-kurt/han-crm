@@ -93,14 +93,17 @@ jobs:
     steps:
       - name: Deploy to Production Server
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         with:
           host: 37.148.214.167
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
+          envs: GHCR_TOKEN
           script: |
             # Login to GitHub Container Registry
-            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u burak-kurt --password-stdin
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u burak-kurt --password-stdin
 
             cd ~/hancrm
 
@@ -113,9 +116,10 @@ jobs:
             # Restart only frontend service
             docker-compose -f docker-compose.frontend.yml up -d frontend
 
-            # Update nginx config
-            sudo cp ~/hancrm/nginx/conf.d/hancrm.conf /etc/nginx/conf.d/hancrm.conf
-            sudo nginx -t && sudo systemctl reload nginx
+            # Update nginx config (sudo -n: şifre gerekirse askıya almadan hata ver)
+            sudo -n cp ~/hancrm/nginx/conf.d/hancrm.conf /etc/nginx/conf.d/hancrm.conf && \
+            sudo -n nginx -t && sudo -n systemctl reload nginx || \
+            echo "⚠ nginx reload atlandı (sudo yetkisi yok), manuel reload gerekebilir"
 
             # Wait for frontend to be ready
             sleep 10
