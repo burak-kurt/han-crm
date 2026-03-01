@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Cloud,
   BookOpen,
+  Settings,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/axios';
@@ -95,6 +96,12 @@ export default function DashboardLayout() {
       name: 'Blog Yazıları',
       href: '/crm/blog',
       icon: BookOpen,
+      permission: null,
+    },
+    {
+      name: 'Sistem Ayarları',
+      href: '/crm/settings',
+      icon: Settings,
       permission: null,
     },
   ];

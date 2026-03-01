@@ -14,6 +14,7 @@ import GoogleImportPage from './pages/GoogleImportPage';
 import BlogManagementPage from './pages/BlogManagementPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
+import SystemSettingsPage from './pages/SystemSettingsPage';
 import { useAuthStore } from './store/authStore';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -53,6 +54,7 @@ function App() {
           <Route path="logs" element={<LogsPage />} />
           <Route path="google-import" element={<GoogleImportPage />} />
           <Route path="blog" element={<BlogManagementPage />} />
+          <Route path="settings" element={<SystemSettingsPage />} />
         </Route>
       </Routes>
     </Router>
